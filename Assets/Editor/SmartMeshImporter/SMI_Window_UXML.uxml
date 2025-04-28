@@ -1,6 +1,6 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
     <ui:VisualElement name="EmptySpace" style="flex-grow: 1; position: relative; margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;" />
-    <ui:TextField label="Mesh Folder Path" placeholder-text="/Assets/" usage-hints="None" language-direction="Inherit" value="/Assets/" picking-mode="Ignore" password="false" keyboard-type="Default" auto-correction="false" multiline="false" name="MeshFolderPathField" binding-path="meshFolderPath" />
+    <ui:TextField label="Mesh Folder Path" usage-hints="None" language-direction="Inherit" picking-mode="Ignore" password="false" keyboard-type="Default" auto-correction="false" multiline="false" name="MeshFolderPathField" binding-path="meshFolderPath" />
     <ui:VisualElement name="EmptySpace" style="flex-grow: 1; position: relative; margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;" />
     <uie:ObjectField label="JSON file" enabled="true" name="JsonInputField" binding-path="jsonSceneData" />
     <ui:VisualElement name="EmptySpace" style="flex-grow: 1; position: relative; margin-top: 5px; margin-right: 5px; margin-bottom: 5px; margin-left: 5px; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;" />
