@@ -1,104 +1,67 @@
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
+using Unity.VisualScripting;
 using UnityEditor;
+using UnityEditor.VersionControl;
 using UnityEngine;
+using static UnityEditor.Progress;
 
 namespace SmartMeshImporter
 {
     public class SMIFbxProcessor : MonoBehaviour
     {
-        public static void ProcessFBX(string fbxPath, string outputFolder)
+        /// Extract textures from the fbx file
+        /// <param name="fbxPath">path of fbx file</param>
+        public static void ProcessFBX(string fbxPath, string materialOutputFolder)
         {
-            if (!Directory.Exists(outputFolder)) Directory.CreateDirectory(outputFolder);
-            if (!Directory.Exists(outputFolder + "/textures")) Directory.CreateDirectory(outputFolder + "/textures");
-            
-            // Extract textures from the FBX file
             ModelImporter modelImporter = AssetImporter.GetAtPath(fbxPath) as ModelImporter;
             if (modelImporter == null) return;
-            modelImporter.ExtractTextures(outputFolder + "/textures");
 
-            // Load all assets from the FBX
+            FileInfo sourceFile = new FileInfo(fbxPath);
+            if (!sourceFile.Exists) return;
+            string fbxName = sourceFile.Name.Substring(0, sourceFile.Name.Length - 4); //name without extension
+
+            //Extract textures
+            modelImporter.materialLocation = ModelImporterMaterialLocation.External;
+            modelImporter.materialName = ModelImporterMaterialName.BasedOnModelNameAndMaterialName;
+            modelImporter.materialSearch = ModelImporterMaterialSearch.Local;
+            AssetDatabase.WriteImportSettingsIfDirty(fbxPath);
+            AssetDatabase.ImportAsset(fbxPath, ImportAssetOptions.ForceUpdate);
+            AssetDatabase.Refresh();
+
+            modelImporter.materialLocation = ModelImporterMaterialLocation.InPrefab;
+            AssetDatabase.WriteImportSettingsIfDirty(fbxPath);
+            AssetDatabase.ImportAsset(fbxPath, ImportAssetOptions.ForceUpdate); //reimport twice because unity.
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+
+            // Extract Materials
             Object[] assets = AssetDatabase.LoadAllAssetsAtPath(fbxPath);
-            List<Material> materials = new List<Material>();
 
             foreach (Object asset in assets)
             {
                 if (asset is not Material material) continue;
-                
-                string materialPath = Path.Combine(outputFolder, material.name + ".mat");
+                string materialPath = Path.Combine(materialOutputFolder, fbxName + "-" + material.name + ".mat");
                 materialPath = AssetDatabase.GenerateUniqueAssetPath(materialPath);
                 AssetDatabase.ExtractAsset(material, materialPath);
-                materials.Add(material);
             }
-
-            // Assign textures to extracted materials
-            
-            AssignTexturesToMaterials(materials, outputFolder + "/textures");
         }
 
-        private static void AssignTexturesToMaterials(List<Material> materials, string textureFolder)
+        public static void MoveTexturesFolders(string modelsPath, string destPath)
         {
-            Dictionary<string, Texture> textures = LoadTextures(textureFolder);
 
-            foreach (Material material in materials)
+            string[] textureDirectories = Directory.GetDirectories(modelsPath, "*.fbm");
+
+            foreach (string dir in textureDirectories)
             {
-                foreach (var textureEntry in textures)
-                {
-                    Texture texture = textureEntry.Value;
-                    material.SetTexture("_BaseMap", texture);
-                    
-                    /*
-                    if (texture.name.ToLower().Contains("diffuse") || texture.name.ToLower().Contains("albedo") || texture.name.ToLower().Contains("_basecolor"))
-                    {
-                        material.SetTexture("_MainTex", texture);
-                    }
-                    else if (texture.name.ToLower().Contains("normal"))
-                    {
-                        material.SetTexture("_BumpMap", texture);
-                        material.EnableKeyword("_NORMALMAP");
-                    }
-                    else if (texture.name.ToLower().Contains("roughness"))
-                    {
-                        material.SetTexture("_GlossMap", texture);
-                        material.EnableKeyword("_GLOSSY_REFLECTIONS_OFF");
-                    }
-                    else if (texture.name.ToLower().Contains("metallic"))
-                    {
-                        material.SetTexture("_MetallicGlossMap", texture);
-                        material.EnableKeyword("_METALLICGLOSSMAP");
-                    }
-                    else if (texture.name.ToLower().Contains("ao") || texture.name.ToLower().Contains("ambientocclusion"))
-                    {
-                        material.SetTexture("_OcclusionMap", texture);
-                    }*/
-
-                    Debug.Log($"Assigned {texture.name} to {material.name}");
-                    AssetDatabase.SaveAssets();
-                }
-                
-                AssetDatabase.SaveAssets();
-            }
-            
-        }
-
-        private static Dictionary<string, Texture> LoadTextures(string folderPath)
-        {
-            Dictionary<string, Texture> textures = new Dictionary<string, Texture>();
-
-            // Load all extracted textures
-            string[] textureFiles = Directory.GetFiles(folderPath, "*.*");
-
-            foreach (string file in textureFiles)
-            {
-                string extension = Path.GetExtension(file).ToLower();
-                if (extension != ".png" && extension != ".jpg" && extension != ".jpeg") continue;
-                
-                Texture texture = AssetDatabase.LoadAssetAtPath<Texture>(file);
-                if (texture == null) continue;
-                textures[file] = texture;
+                string newDir = dir.Replace(modelsPath, "");
+                print(newDir);
+                Directory.Move(dir, destPath + newDir);
             }
 
-            return textures;
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
         }
     }
 }

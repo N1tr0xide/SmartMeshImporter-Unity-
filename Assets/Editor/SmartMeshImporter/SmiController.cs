@@ -72,16 +72,20 @@ namespace SmartMeshImporter
                 Debug.LogWarning("No Fbx files found. Path might not exists or might not contain any .fbx files.");
                 return;
             }
-            
+
+            string modelsPath = "Assets" + _modelsPath.Replace(Application.dataPath, "");
+            string materialsPath = modelsPath + "/Materials";
+            string texturesPath = modelsPath + "/Textures";
+            if (!Directory.Exists(materialsPath)) Directory.CreateDirectory(materialsPath);
+            if (!Directory.Exists(texturesPath)) Directory.CreateDirectory(texturesPath);
+
             foreach (string file in _fileNames)
             {
                 string filePath = "Assets" + file.Replace(Application.dataPath, "");
-                string materialsPath = "Assets" + _modelsPath.Replace(Application.dataPath, "") + "/Materials";
                 SMIFbxProcessor.ProcessFBX(filePath, materialsPath);
             }
-            
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
+
+            SMIFbxProcessor.MoveTexturesFolders(modelsPath, texturesPath);
         }
     }
 }
