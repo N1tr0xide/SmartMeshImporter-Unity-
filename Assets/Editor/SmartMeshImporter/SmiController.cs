@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace SmartMeshImporter
 {
@@ -34,9 +36,8 @@ namespace SmartMeshImporter
                 _fileNames = null;
                 return;
             }
-
-            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-            if (_fileNames == null || _fileNames.Length == 0)
+            
+            if (_fileNames.Length == 0)
             {
                 Debug.LogWarning("No Fbx files found. Path might not exists or might not contain any .fbx files.");
                 return;
@@ -44,7 +45,6 @@ namespace SmartMeshImporter
         
             //Print fbx files.
             Debug.LogWarning("FBX MODELS FOUND:");
-
             foreach (string item in _fileNames)
             {
                 FileInfo sourceFile = new FileInfo(item);
@@ -53,20 +53,64 @@ namespace SmartMeshImporter
             }
         }
 
-        public static void SceneRebuilt()
+        public static void SceneRebuilt(TextAsset jsonFile)
         {
-            //GameObject obj = AssetDatabase.LoadAssetAtPath<GameObject>("Assets" + item.Replace(Application.dataPath, ""));
-            //_objects.Add(obj);
+            if(jsonFile == null) return;
+            string path = AssetDatabase.GetAssetPath(jsonFile); //Read json data
+            if (!path.Contains(".json"))
+            {
+                Debug.LogWarning("Text asset is not a .json file.");
+                return;
+            }
 
-            //string name = sourceFile.Name;
-            //string nameShort = name.Substring(0, name.Length - 4); //name without extension
-            //GameObject gObj = new GameObject(nameShort);
-            //_objects.Add(gObj);
+            SceneData sceneData = SceneDataReader.GetSceneData(path);
+            if (sceneData == null) return;
+
+            Dictionary<string, GameObject> fbxGameObjects = new System.Collections.Generic.Dictionary<string, GameObject>();
+            Dictionary<string, GameObject> addedGameObjs = new System.Collections.Generic.Dictionary<string, GameObject>();
+            string modelsPath = "Assets" + _modelsPath.Replace(Application.dataPath, "");
+
+            //Instantiate all gameObjects and apply transformations.
+            foreach (MeshObjectData objectData in sceneData.objectDatas)
+            {
+                GameObject fbxGameObj;
+
+                if (fbxGameObjects.TryGetValue(objectData.base_name, out GameObject obj))
+                {
+                    fbxGameObj = obj;
+                }
+                else
+                {
+                    string fbxPath = $"{modelsPath}/{objectData.base_name}.fbx";
+                    fbxGameObj = AssetDatabase.LoadAssetAtPath<GameObject>(fbxPath);
+                    if (fbxGameObj == null)
+                    {
+                        Debug.LogWarning("failed to load fbx: " + fbxPath);
+                        continue;
+                    }
+                    fbxGameObjects.Add(objectData.base_name, fbxGameObj);
+                }
+
+                GameObject newObj = Instantiate(fbxGameObj);
+                newObj.name = objectData.name;
+                newObj.transform.position = new Vector3(objectData.location[0], objectData.location[2], objectData.location[1]);
+                newObj.transform.localScale = new Vector3(objectData.scale[0], objectData.scale[2], objectData.scale[1]);
+                newObj.transform.rotation = Quaternion.Euler(new Vector3(objectData.rotation[0], objectData.rotation[2], objectData.rotation[1]));
+                addedGameObjs.Add(objectData.name, newObj);
+            }
+
+            //Set parents for each object
+            foreach (MeshObjectData objectData in sceneData.objectDatas)
+            {
+                if(objectData.parent == "null") continue;
+                if (!addedGameObjs.TryGetValue(objectData.name, out GameObject obj)) continue;
+                if (!addedGameObjs.TryGetValue(objectData.parent, out GameObject parentObj)) continue;
+                obj.transform.parent = parentObj.transform;
+            }
         }
 
         public static void ExtractMaterialsAndTextures()
         {
-            print("button pressed");
             if (_fileNames == null || _fileNames.Length == 0)
             {
                 Debug.LogWarning("No Fbx files found. Path might not exists or might not contain any .fbx files.");
@@ -75,17 +119,13 @@ namespace SmartMeshImporter
 
             string modelsPath = "Assets" + _modelsPath.Replace(Application.dataPath, "");
             string materialsPath = modelsPath + "/Materials";
-            string texturesPath = modelsPath + "/Textures";
             if (!Directory.Exists(materialsPath)) Directory.CreateDirectory(materialsPath);
-            if (!Directory.Exists(texturesPath)) Directory.CreateDirectory(texturesPath);
-
+            
             foreach (string file in _fileNames)
             {
                 string filePath = "Assets" + file.Replace(Application.dataPath, "");
-                SMIFbxProcessor.ProcessFBX(filePath, materialsPath);
+                SmiFbxProcessor.ProcessFBX(filePath, materialsPath);
             }
-
-            SMIFbxProcessor.MoveTexturesFolders(modelsPath, texturesPath);
         }
     }
 }

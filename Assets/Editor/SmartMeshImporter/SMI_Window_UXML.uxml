@@ -2,7 +2,7 @@
     <ui:VisualElement name="EmptySpace" style="flex-grow: 1; position: relative; margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;" />
     <ui:TextField label="Mesh Folder Path" usage-hints="-1" language-direction="Inherit" picking-mode="Ignore" password="false" keyboard-type="Default" auto-correction="false" multiline="false" name="MeshFolderPathField" binding-path="meshFolderPath" tooltip="Enter the path to the folder in your project containing the models." placeholder-text="//" />
     <ui:VisualElement name="EmptySpace" style="flex-grow: 1; position: relative; margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;" />
-    <uie:ObjectField label="JSON file" enabled="true" name="JsonInputField" binding-path="jsonSceneData" />
+    <uie:ObjectField label="JSON file" enabled="true" name="JsonInputField" binding-path="jsonSceneData" data-source-type="UnityEngine.TextAsset, UnityEngine.CoreModule" />
     <ui:VisualElement name="EmptySpace" style="flex-grow: 1; position: relative; margin-top: 5px; margin-right: 5px; margin-bottom: 5px; margin-left: 5px; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;" />
     <ui:Button text="Reconstruct Scene" name="RebuiltSceneBtn" binding-path="rebuiltSceneBtn" />
     <ui:VisualElement name="EmptySpace" style="flex-grow: 1; position: relative; margin-top: 5px; margin-right: 5px; margin-bottom: 5px; margin-left: 5px; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;" />

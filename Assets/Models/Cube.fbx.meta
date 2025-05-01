@@ -3,12 +3,7 @@ guid: 4be1dbdf55cdb69489c561fc8ef7e0c8
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects:
-  - first:
-      type: UnityEngine:Texture2D
-      assembly: UnityEngine.CoreModule
-      name: TexelDensityChecker
-    second: {fileID: 2800000, guid: f132eab0b00813048beb172f59b6a753, type: 3}
+  externalObjects: {}
   materials:
     materialImportMode: 2
     materialName: 2

@@ -1,4 +1,5 @@
 using UnityEditor;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -41,7 +42,14 @@ namespace SmartMeshImporter
                 return;
             }
 
-            SmiController.SceneRebuilt();
+            ObjectField jsonFile = _root.Q<ObjectField>("JsonInputField");
+            if (jsonFile.value is not TextAsset jsonAsset)
+            {
+                Debug.LogWarning("Asset is not a Text Asset file");
+                return;
+            }
+  
+            SmiController.SceneRebuilt(jsonAsset);
         }
     
         private void OnMatsExtractBtn()
